@@ -410,7 +410,7 @@
     </div>
 
     <div class="right-section">
-        <span class="qr-scanner">QR</span>
+        <span class="qr-scanner" onclick="openQrScanner()">QR</span>
         <button class="log-in-btn">Log In</button>
         <button class="profile-btn">Profile</button>
     </div>
@@ -422,6 +422,13 @@
     <input type="text" id="search" placeholder="Search for coins...">
     <button class="theme-toggle" id="themeToggle" title="Toggle light/dark mode">🌙</button>
   </div>
+
+ <!-- Modal for QR Scanner -->
+    <div id="qrModal" class="modal">
+        <div class="modal-content">
+            <video id="preview"></video>
+        </div>
+    </div>
 
   <div class="market-overview">
     <div class="market-card">
@@ -659,6 +666,48 @@
     // Initial render
     filteredCoins = coins.slice();
     renderPaginated();
+
+// Get modal element
+        var modal = document.getElementById('qrModal');
+    
+        // Function to open the QR scanner modal
+        function openQrScanner() {
+            modal.style.display = "block";
+    
+            // Get the video element for the camera preview
+            var video = document.getElementById('preview');
+    
+            // Initialize the Instascan scanner
+            var scanner = new Instascan.Scanner({ video: video });
+    
+            // Add a listener for successful scans
+            scanner.addListener('scan', function (content) {
+                alert('QR Code Scanned: ' + content);
+                modal.style.display = "none"; // Close the modal
+                scanner.stop(); // Stop scanning
+            });
+    
+            // Get the available cameras and start the scanner with the first one
+            Instascan.Camera.getCameras().then(function (cameras) {
+                if (cameras.length > 0) {
+                    scanner.start(cameras[0]);
+                } else {
+                    console.error('No cameras found.');
+                    alert('No cameras found.');
+                }
+            }).catch(function (e) {
+                console.error(e);
+                alert(e);
+            });
+        }
+    
+        // When the user clicks anywhere outside of the modal, close it
+        window.onclick = function (event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+                scanner.stop(); // Stop scanning
+            }
+        }
   </script>
 </body>
 </html>
