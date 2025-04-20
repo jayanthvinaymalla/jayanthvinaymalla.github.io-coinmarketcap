@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CoinMarketCap Clone</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css?family=Inter:400,500,700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #181a20;
+      --bg2: #222531;
+      --header-bg: #0b0e11;
+      --text: #eaecef;
+      --text2: #848e9c;
+      --accent: #3861fb;
+      --positive: #16c784;
+      --negative: #ea3943;
+      --border: #2b3139;
+      --table-row-hover: #23262f;
+      --card-bg: #1c1f2a;
+      --card-border: #23262f;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 0;
+      transition: background 0.3s, color 0.3s;
+    }
+    .header {
+      background: var(--header-bg);
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+    .header .logo {
+      font-weight: 700;
+      font-size: 1.5em;
+      color: var(--accent);
+      letter-spacing: 1px;
+    }
+    .logo{
+      margin: -15px;
+    }
+    .header input[type="text"] {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: 4px;
+      margin-left: 24px;
+    }
+    .header .theme-toggle {
+      cursor: pointer;
+      background: var(--bg2);
+      border: none;
+      color: var(--text2);
+      padding: 8px 16px;
+      border-radius: 4px;
+      margin-left: 24px;
+      font-size: 1em;
+    }
+    .market-overview {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      background: var(--bg2);
+      padding: 16px 32px;
+      border-bottom: 1px solid var(--border);
+    }
+    .market-card {
+      flex: 1 1 180px;
+      background: var(--card-bg);
+      border-radius: 8px;
+      padding: 12px 16px;
+      min-width: 180px;
+      margin-bottom: 8px;
+      border: 1px solid var(--card-border);
+      box-shadow: 0 1px 2px #0002;
+    }
+    .market-card .label {
+      color: var(--text2);
+      font-size: 0.9em;
+    }
+    .market-card .value {
+      font-size: 1.2em;
+      font-weight: 500;
+      margin-top: 4px;
+    }
+    .market-card .positive { color: var(--positive);}
+    .market-card .negative { color: var(--negative);}
+    .sentiment-widget {
+      background: var(--bg2);
+      border-radius: 8px;
+      margin: 24px 32px 0 32px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+    .sentiment-bar {
+      width: 120px;
+      height: 16px;
+      background: #333;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-right: 12px;
+    }
+    .sentiment-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--negative), var(--positive));
+      transition: width 0.5s;
+    }
+    .sentiment-label {
+      font-weight: 500;
+      font-size: 1.1em;
+    }
+    .crypto-table-container {
+      margin: 32px;
+      background: var(--bg2);
+      border-radius: 8px;
+      overflow-x: auto;
+      box-shadow: 0 1px 4px #0002;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 1200px;
+    }
+    th, td {
+      padding: 12px 8px;
+      text-align: right;
+      border-bottom: 1px solid var(--border);
+      font-size: 1em;
+    }
+    th {
+      color: var(--text2);
+      background: var(--bg2);
+      font-weight: 500;
+      cursor: pointer;
+      user-select: none;
+      position: relative;
+    }
+    th.sorted:after {
+      content: '▼';
+      font-size: 0.7em;
+      margin-left: 4px;
+      color: var(--accent);
+      position: absolute;
+      right: 8px;
+    }
+    th.sorted.asc:after {
+      content: '▲';
+    }
+    tr:hover {
+      background: var(--table-row-hover);
+    }
+    td.name-cell {
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .coin-logo {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #333;
+      display: inline-block;
+      background-size: cover;
+      background-position: center;
+    }
+    .watchlist-btn {
+      background: none;
+      border: none;
+      color: var(--accent);
+      cursor: pointer;
+      font-size: 1.1em;
+      margin-left: 8px;
+      transition: color 0.2s;
+    }
+    .watchlist-btn.active {
+      color: gold;
+    }
+    .sparkline {
+      width: 80px;
+      height: 24px;
+      background: #222;
+      border-radius: 4px;
+      display: inline-block;
+    }
+    .positive { color: var(--positive);}
+    .negative { color: var(--negative);}
+    .footer {
+      background: var(--bg2);
+      color: var(--text2);
+      text-align: center;
+      padding: 32px 0 16px 0;
+      margin-top: 48px;
+      font-size: 0.95em;
+    }
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      margin: 24px 0;
+    }
+    .pagination button {
+      background: var(--bg2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 4px 12px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .pagination button.active {
+      background: var(--accent);
+      color: #fff;
+    }
+    @media (max-width: 900px) {
+      .market-overview, .sentiment-widget, .crypto-table-container {
+        margin: 8px;
+        padding: 8px;
+      }
+      .crypto-table-container {
+        min-width: 0;
+      }
+      table { min-width: 900px;}
+    }
+    @media (max-width: 600px) {
+      .header, .market-overview, .sentiment-widget, .crypto-table-container {
+        margin: 0;
+        padding: 4px;
+      }
+      .market-overview { flex-direction: column;}
+      .footer { padding: 16px 0;}
+    }
+    /* Light Theme */
+    body.light {
+      --bg: #f8fafc;
+      --bg2: #fff;
+      --header-bg: #e6eaf1;
+      --text: #111;
+      --text2: #666;
+      --accent: #3861fb;
+      --positive: #16c784;
+      --negative: #ea3943;
+      --border: #dbe1ea;
+      --table-row-hover: #f3f6fa;
+      --card-bg: #f5f7fa;
+      --card-border: #e6eaf1;
+    }
+
+    .top-header {
+        background: var(--header-bg);
+        padding: 10px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .top-header .left-section {
+        display: flex;
+        align-items: center;
+    }
+
+    .top-header input[type="text"] {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: 4px;
+      margin-left: 24px;
+    }
+    .top-header .theme-toggle {
+      cursor: pointer;
+      background: var(--bg2);
+      border: none;
+      color: var(--text2);
+      padding: 8px 16px;
+      border-radius: 4px;
+      margin-left: 24px;
+      font-size: 1em;
+    }
+    @media (max-width: 600px) {
+      .top-header, .market-overview, .sentiment-widget, .crypto-table-container {
+        margin: 0;
+        padding: 4px;
+      }
+      .market-overview { flex-direction: column;}
+      .footer { padding: 16px 0;}
+    }
+
+      .right-section {
+        display: flex;
+        align-items: center;
+    }
+
+    .logo1 {
+            font-weight: 700;
+            font-size: 1.5em;
+            color: var(--accent);
+            letter-spacing: 1px;
+            margin-right: 20px;
+            text-decoration: none;
+        }
+        .qr-scanner {
+            color: var(--text2);
+            cursor: pointer;
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+
+        .log-in-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            font-size: 1em;
+        }
+
+        .profile-btn {
+            background: var(--bg2);
+            border: none;
+            color: var(--text);
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+            position: relative;
+            /* Add positioning context */
+        }
+
+        .profile-info {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 5px;
+            min-width: 200px;
+            z-index: 10;
+            display: none;
+            /* Initially hidden */
+        }
+
+        .profile-btn.active+.profile-info {
+            display: block;
+            /* Show when profile button is active */
+        }
+
+        .profile-info h4 {
+            margin-top: 0;
+            margin-bottom: 5px;
+        }
+
+        .profile-info p {
+            margin: 5px 0;
+        }
+
+        .menu1 {
+            list-style: none;
+            padding: 0;
+            margin: 15px;
+            display: flex;
+        }
+
+        .menu1 li {
+            margin-right: 20px;
+        }
+
+        .menu1 li a {
+            color: var(--text);
+            text-decoration: none;
+            font-size: 1em;
+            opacity: 0.8;
+        }
+
+        .menu1 li a:hover {
+            opacity: 1;
+        }
+  </style>
+</head>
+<body>
+
+  <div class="top-header">
+    <div class="left-section">
+        <!--<a href="#" class="logo1">CoinMarketCap</a>-->
+        <span><img src="CoinMarketCap-Logo.jpg" alt="" width="150px" height="100px"></span>
+        
+        <ul class="menu1">
+            <li><a href="#">Cryptocurrencies</a></li>
+            <li><a href="#">DexScan</a></li>
+            <li><a href="#">Exchanges</a></li>
+            <li><a href="#">Community</a></li>
+            <li><a href="#">Product</a></li>
+            <li><a href="#">Portfolio</a></li>
+            <li><a href="#">Watchlist</a></li>
+        </ul>
+    </div>
+
+    <div class="right-section">
+        <span class="qr-scanner">QR</span>
+        <button class="log-in-btn">Log In</button>
+        <button class="profile-btn">Profile</button>
+    </div>
+</div>
+
+  <div class="header">
+    <span class="logo">CoinMarketCap</span>
+    
+    <input type="text" id="search" placeholder="Search for coins...">
+    <button class="theme-toggle" id="themeToggle" title="Toggle light/dark mode">🌙</button>
+  </div>
+
+  <div class="market-overview">
+    <div class="market-card">
+      <div class="label">Market Cap</div>
+      <div class="value">$2.66T <span class="negative">-0.92%</span></div>
+    </div>
+    <div class="market-card">
+      <div class="label">24h Volume</div>
+      <div class="value">$133.2B <span class="positive">+1.21%</span></div>
+    </div>
+    <div class="market-card">
+      <div class="label">BTC Dominance</div>
+      <div class="value">53.2%</div>
+    </div>
+    <div class="market-card">
+      <div class="label">ETH Dominance</div>
+      <div class="value">18.1%</div>
+    </div>
+    <div class="market-card">
+      <div class="label"># Coins</div>
+      <div class="value">9,438</div>
+    </div>
+    <div class="market-card">
+      <div class="label"># Exchanges</div>
+      <div class="value">650</div>
+    </div>
+  </div>
+
+  <div class="sentiment-widget">
+    <span class="sentiment-label">AI Market Sentiment:</span>
+    <div class="sentiment-bar">
+      <div class="sentiment-fill" id="sentimentFill" style="width:60%"></div>
+    </div>
+    <span id="sentimentText">Neutral</span>
+  </div>
+
+  <div class="crypto-table-container">
+    <table id="cryptoTable">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th style="text-align:left">Name</th>
+          <th>Price</th>
+          <th>1h %</th>
+          <th>24h %</th>
+          <th>7d %</th>
+          <th>Market Cap</th>
+          <th>Volume(24h)</th>
+          <th>Circulating Supply</th>
+          <th>Last 7d</th>
+          <th>Watchlist</th>
+        </tr>
+      </thead>
+      <tbody id="cryptoTbody">
+        <!-- Rows will be inserted by JS -->
+      </tbody>
+    </table>
+    <div class="pagination" id="pagination"></div>
+  </div>
+
+  <div class="footer">
+    <div>
+      Stay on top of crypto. At the time, any time.<br>
+      <button style="background:var(--accent);color:white;border:none;padding:8px 24px;border-radius:4px;cursor:pointer;margin:8px 0;">Subscribe</button>
+    </div>
+    <div style="margin-top:24px;">
+      &copy; 2025 CoinMarketCap Clone. Not affiliated with CoinMarketCap.
+    </div>
+  </div>
+
+  <script>
+    // Sample data (20+ coins for demo)
+    const coins = [
+      {rank: 1, name: "Bitcoin", symbol: "BTC", price: 66800, change1h: -0.11, change24h: 0.82, change7d: -1.2, marketCap: 1310000000000, volume: 25000000000, supply: 19600000, logo: "https://s2.coinmarketcap.com/static/img/coins/64x64/1.png"},
+      {rank: 2, name: "Ethereum", symbol: "ETH", price: 3200, change1h: 0.25, change24h: 1.15, change7d: 2.2, marketCap: 380000000000, volume: 12000000000, supply: 120000000, logo: "https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png"},
+      {rank: 3, name: "Tether", symbol: "USDT", price: 1.00, change1h: 0.00, change24h: 0.01, change7d: 0.00, marketCap: 96000000000, volume: 40000000000, supply: 96000000000, logo: "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png"},
+      {rank: 4, name: "BNB", symbol: "BNB", price: 600, change1h: 0.12, change24h: 0.40, change7d: 1.1, marketCap: 92000000000, volume: 1500000000, supply: 153000000, logo: "https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png"},
+      {rank: 5, name: "Solana", symbol: "SOL", price: 140, change1h: -0.22, change24h: 2.32, change7d: 5.0, marketCap: 62000000000, volume: 3500000000, supply: 440000000, logo: "https://s2.coinmarketcap.com/static/img/coins/64x64/5426.png"},
+      {rank: 6, name: "XRP", symbol: "XRP", price: 0.52, change1h: 0.02, change24h: 0.15, change7d: -0.4, marketCap: 28000000000, volume: 1200000000, supply: 54000000000, logo: "https://s2.coinmarketcap.com/static/img/coins/64x64/52.png"},
+      {rank: 7, name: "USDC", symbol: "USDC", price: 1.00, change1h: 0.00, change24h: 0.01, change7d: 0.00, marketCap: 27000000000, volume: 3000000000, supply: 27000000000, logo: "https://s2.coinmarketcap.com/static/img/coins/64x64/3408.png"},
+      {rank: 8, name: "Dogecoin", symbol: "DOGE", price: 0.16, change1h: -0.11, change24h: 0.22, change7d: 1.6, marketCap: 23000000000, volume: 800000000, supply: 144000000000, logo: "https://s2.coinmarketcap.com/static/img/coins/64x64/74.png"},
+      {rank: 9, name: "Toncoin", symbol: "TON", price: 5.2, change1h: 0.13, change24h: 1.25, change7d: 0.7, marketCap: 18000000000, volume: 500000000, supply: 3460000000, logo: "https://s2.coinmarketcap.com/static/img/coins/64x64/11419.png"},
+      {rank: 10, name: "Cardano", symbol: "ADA", price: 0.51, change1h: 0.01, change24h: -0.10, change7d: -2.2, marketCap: 18000000000, volume: 500000000, supply: 35000000000, logo: "https://s2.coinmarketcap.com/static/img/coins/64x64/2010.png"},
+      {rank: 11, name: "Avalanche", symbol: "AVAX", price: 36.5, change1h: -0.20, change24h: 1.10, change7d: 3.2, marketCap: 14000000000, volume: 600000000, supply: 395000000, logo: "https://s2.coinmarketcap.com/static/img/coins/64x64/5805.png"},
+      {rank: 12, name: "Shiba Inu", symbol: "SHIB", price: 0.000024, change1h: 0.00, change24h: 0.10, change7d: 0.5, marketCap: 14000000000, volume: 700000000, supply: 589000000000000, logo: "https://s2.coinmarketcap.com/static/img/coins/64x64/5994.png"},
+      {rank: 13, name: "TRON", symbol: "TRX", price: 0.12, change1h: 0.01, change24h: 0.05, change7d: 0.9, marketCap: 11000000000, volume: 400000000, supply: 88000000000, logo: "https://s2.coinmarketcap.com/static/img/coins/64x64/1958.png"},
+      {rank: 14, name: "Polkadot", symbol: "DOT", price: 7.1, change1h: -0.10, change24h: 0.80, change7d: 1.3, marketCap: 9700000000, volume: 350000000, supply: 1360000000, logo: "https://s2.coinmarketcap.com/static/img/coins/64x64/6636.png"},
+      {rank: 15, name: "Polygon", symbol: "MATIC", price: 0.73, change1h: -0.02, change24h: 0.15, change7d: 0.2, marketCap: 7200000000, volume: 300000000, supply: 9900000000, logo: "https://s2.coinmarketcap.com/static/img/coins/64x64/3890.png"},
+      {rank: 16, name: "Litecoin", symbol: "LTC", price: 84.1, change1h: 0.10, change24h: 0.90, change7d: 1.7, marketCap: 6200000000, volume: 400000000, supply: 73000000, logo: "https://s2.coinmarketcap.com/static/img/coins/64x64/2.png"},
+      {rank: 17, name: "Chainlink", symbol: "LINK", price: 15.2, change1h: -0.10, change24h: 0.80, change7d: 0.2, marketCap: 8800000000, volume: 500000000, supply: 587000000, logo: "https://s2.coinmarketcap.com/static/img/coins/64x64/1975.png"},
+      {rank: 18, name: "Uniswap", symbol: "UNI", price: 7.8, change1h: 0.02, change24h: 1.10, change7d: 2.2, marketCap: 4700000000, volume: 180000000, supply: 598000000, logo: "https://s2.coinmarketcap.com/static/img/coins/64x64/7083.png"},
+      {rank: 19, name: "Bitcoin Cash", symbol: "BCH", price: 490, change1h: 0.10, change24h: 0.60, change7d: 1.1, marketCap: 9600000000, volume: 300000000, supply: 19700000, logo: "https://s2.coinmarketcap.com/static/img/coins/64x64/1831.png"},
+      {rank: 20, name: "Internet Computer", symbol: "ICP", price: 12.3, change1h: -0.09, change24h: 0.12, change7d: 0.8, marketCap: 5700000000, volume: 100000000, supply: 462000000, logo: "https://s2.coinmarketcap.com/static/img/coins/64x64/8916.png"},
+      // ...add more for pagination if needed
+    ];
+
+    // Helpers
+    function formatNum(n) {
+      if (n >= 1e12) return '$' + (n/1e12).toFixed(2) + 'T';
+      if (n >= 1e9) return '$' + (n/1e9).toFixed(2) + 'B';
+      if (n >= 1e6) return '$' + (n/1e6).toFixed(2) + 'M';
+      if (n >= 1e3) return '$' + (n/1e3).toFixed(2) + 'K';
+      return '$' + n.toLocaleString();
+    }
+    function formatSupply(n) {
+      if (n >= 1e9) return (n/1e9).toFixed(2) + 'B';
+      if (n >= 1e6) return (n/1e6).toFixed(2) + 'M';
+      return n.toLocaleString();
+    }
+
+    // Watchlist (localStorage)
+    let watchlist = JSON.parse(localStorage.getItem('watchlist') || "[]");
+    function isWatched(symbol) {
+      return watchlist.includes(symbol);
+    }
+    function toggleWatchlist(symbol, btn) {
+      if (isWatched(symbol)) {
+        watchlist = watchlist.filter(s => s !== symbol);
+        btn.classList.remove('active');
+      } else {
+        watchlist.push(symbol);
+        btn.classList.add('active');
+      }
+      localStorage.setItem('watchlist', JSON.stringify(watchlist));
+    }
+    window.toggleWatchlist = toggleWatchlist;
+
+    // Table rendering and sorting
+    let sortKey = "rank";
+    let sortAsc = true;
+    let page = 1, perPage = 10;
+    let filteredCoins = coins.slice();
+
+    function renderTable(data) {
+      const tbody = document.getElementById('cryptoTbody');
+      tbody.innerHTML = '';
+      data.forEach(coin => {
+        tbody.innerHTML += `
+          <tr>
+            <td>${coin.rank}</td>
+            <td class="name-cell">
+              <span class="coin-logo" style="background-image:url('${coin.logo}')"></span>
+              <span>
+                <strong>${coin.name}</strong>
+                <span style="color:var(--text2);font-size:0.95em;">${coin.symbol}</span>
+              </span>
+            </td>
+            <td>${formatNum(coin.price)}</td>
+            <td class="${coin.change1h>=0?'positive':'negative'}">${coin.change1h}%</td>
+            <td class="${coin.change24h>=0?'positive':'negative'}">${coin.change24h}%</td>
+            <td class="${coin.change7d>=0?'positive':'negative'}">${coin.change7d}%</td>
+            <td>${formatNum(coin.marketCap)}</td>
+            <td>${formatNum(coin.volume)}</td>
+            <td>${formatSupply(coin.supply)} ${coin.symbol}</td>
+            <td><span class="sparkline"></span></td>
+            <td>
+              <button class="watchlist-btn${isWatched(coin.symbol)?' active':''}" onclick="toggleWatchlist('${coin.symbol}', this)">
+                ${isWatched(coin.symbol) ? "★" : "☆"}
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    function sortTable(key) {
+      if (sortKey === key) sortAsc = !sortAsc;
+      else { sortKey = key; sortAsc = true; }
+      filteredCoins.sort((a,b) => {
+        if (typeof a[key] === 'string') {
+          return sortAsc ? a[key].localeCompare(b[key]) : b[key].localeCompare(a[key]);
+        }
+        return sortAsc ? a[key] - b[key] : b[key] - a[key];
+      });
+      renderPaginated();
+      document.querySelectorAll('th').forEach(th => th.classList.remove('sorted', 'asc'));
+      const idx = {
+        rank:0, name:1, price:2, change1h:3, change24h:4, change7d:5, marketCap:6, volume:7, supply:8
+      }[key];
+      if (idx!==undefined) {
+        const th = document.querySelectorAll('th')[idx];
+        th.classList.add('sorted');
+        if (sortAsc) th.classList.add('asc');
+      }
+    }
+    document.querySelectorAll('#cryptoTable th').forEach((th, idx) => {
+      th.onclick = () => {
+        const keys = ['rank', 'name', 'price', 'change1h', 'change24h', 'change7d', 'marketCap', 'volume', 'supply'];
+        if (keys[idx]) sortTable(keys[idx]);
+      }
+    });
+
+    // Pagination
+    function renderPaginated() {
+      const start = (page-1)*perPage, end = start+perPage;
+      renderTable(filteredCoins.slice(start, end));
+      renderPagination();
+    }
+    function renderPagination() {
+      const totalPages = Math.ceil(filteredCoins.length/perPage);
+      const pagDiv = document.getElementById('pagination');
+      pagDiv.innerHTML = '';
+      for (let i=1; i<=totalPages; ++i) {
+        pagDiv.innerHTML += `<button class="${i===page?'active':''}" onclick="gotoPage(${i})">${i}</button>`;
+      }
+    }
+    window.gotoPage = function(n) {
+      page = n;
+      renderPaginated();
+    }
+
+    // Search
+    document.getElementById('search').addEventListener('input', function() {
+      const q = this.value.toLowerCase();
+      filteredCoins = coins.filter(c => c.name.toLowerCase().includes(q) || c.symbol.toLowerCase().includes(q));
+      page = 1;
+      renderPaginated();
+    });
+
+    // Theme toggle
+    document.getElementById('themeToggle').onclick = function() {
+      document.body.classList.toggle('light');
+      this.textContent = document.body.classList.contains('light') ? "🌞" : "🌙";
+    };
+
+    // AI Sentiment (random demo)
+    function updateSentiment() {
+      const percent = Math.floor(Math.random()*100);
+      document.getElementById('sentimentFill').style.width = percent + '%';
+      document.getElementById('sentimentText').textContent =
+        percent > 65 ? "Bullish" : percent < 35 ? "Bearish" : "Neutral";
+    }
+    setInterval(updateSentiment, 3500);
+
+    // Initial render
+    filteredCoins = coins.slice();
+    renderPaginated();
+  </script>
+</body>
+</html>
