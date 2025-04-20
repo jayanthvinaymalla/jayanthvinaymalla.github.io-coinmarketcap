@@ -527,6 +527,50 @@
     </div>
   </div>
 
+<script>
+// Get modal element
+        var modal = document.getElementById('qrModal');
+    
+        // Function to open the QR scanner modal
+        function openQrScanner() {
+            modal.style.display = "block";
+    
+            // Get the video element for the camera preview
+            var video = document.getElementById('preview');
+    
+            // Initialize the Instascan scanner
+            var scanner = new Instascan.Scanner({ video: video });
+    
+            // Add a listener for successful scans
+            scanner.addListener('scan', function (content) {
+                alert('QR Code Scanned: ' + content);
+                modal.style.display = "none"; // Close the modal
+                scanner.stop(); // Stop scanning
+            });
+    
+            // Get the available cameras and start the scanner with the first one
+            Instascan.Camera.getCameras().then(function (cameras) {
+                if (cameras.length > 0) {
+                    scanner.start(cameras[0]);
+                } else {
+                    console.error('No cameras found.');
+                    alert('No cameras found.');
+                }
+            }).catch(function (e) {
+                console.error(e);
+                alert(e);
+            });
+        }
+    
+        // When the user clicks anywhere outside of the modal, close it
+        window.onclick = function (event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+                scanner.stop(); // Stop scanning
+            }
+        }
+</script>
+
   <script>
     // Sample data (20+ coins for demo)
     const coins = [
@@ -694,48 +738,6 @@
     // Initial render
     filteredCoins = coins.slice();
     renderPaginated();
-
-// Get modal element
-        var modal = document.getElementById('qrModal');
-    
-        // Function to open the QR scanner modal
-        function openQrScanner() {
-            modal.style.display = "block";
-    
-            // Get the video element for the camera preview
-            var video = document.getElementById('preview');
-    
-            // Initialize the Instascan scanner
-            var scanner = new Instascan.Scanner({ video: video });
-    
-            // Add a listener for successful scans
-            scanner.addListener('scan', function (content) {
-                alert('QR Code Scanned: ' + content);
-                modal.style.display = "none"; // Close the modal
-                scanner.stop(); // Stop scanning
-            });
-    
-            // Get the available cameras and start the scanner with the first one
-            Instascan.Camera.getCameras().then(function (cameras) {
-                if (cameras.length > 0) {
-                    scanner.start(cameras[0]);
-                } else {
-                    console.error('No cameras found.');
-                    alert('No cameras found.');
-                }
-            }).catch(function (e) {
-                console.error(e);
-                alert(e);
-            });
-        }
-    
-        // When the user clicks anywhere outside of the modal, close it
-        window.onclick = function (event) {
-            if (event.target == modal) {
-                modal.style.display = "none";
-                scanner.stop(); // Stop scanning
-            }
-        }
   </script>
 </body>
 </html>
